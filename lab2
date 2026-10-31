@@ -1,0 +1,369 @@
+class BankAccount:
+	def __init__(self, owner, balance=0):
+		self.__owner = owner
+		self.__balance = balance
+		self.__log = []
+
+	@property
+	def balance(self):
+		return self.__balance
+
+	def deposit(self, amount):
+		if amount <= 0:
+			return False
+		self.__balance += amount
+		self.__log.append(f"Пополнение: +{amount}")
+		return True
+
+	def withdraw(self, amount):
+		if amount <= 0 or amount > self.__balance:
+			return False
+		self.__balance -= amount
+		self.__log.append(f"Снятие: -{amount}")
+		return True
+
+	def get_statement(self):
+		operations = "\n".join(self.__log)
+		return f"Владелец: {self.__owner}\n{operations}\nБаланс: {self.__balance}"
+
+
+account1 = BankAccount("Айдар", 1000)
+account2 = BankAccount("Алина", 2000)
+account1.deposit(500)
+account1.withdraw(200)
+account1.deposit(300)
+account1.withdraw(100)
+account1.deposit(50)
+account2.withdraw(300)
+account2.deposit(700)
+account2.withdraw(200)
+account2.deposit(100)
+account2.withdraw(50)
+print(account1.get_statement())
+print(account2.get_statement())
+
+
+class StudentCard:
+	def __init__(self, name, card_id, gpa):
+		self.__name = name
+		self.__card_id = card_id
+		self.gpa = gpa
+
+	@property
+	def gpa(self):
+		return self.__gpa
+
+	@gpa.setter
+	def gpa(self, value):
+		if not 0.0 <= value <= 4.0:
+			raise ValueError("GPA должен быть от 0.0 до 4.0")
+		self.__gpa = value
+
+	@property
+	def status(self):
+		if self.__gpa >= 3.5:
+			return "Отличник"
+		if self.__gpa >= 2.5:
+			return "Хорошист"
+		if self.__gpa >= 1.0:
+			return "Удовлетворительно"
+		return "Отчислен"
+
+
+students = [
+	StudentCard("Айбек уулу Нур", "001", 3.8),
+	StudentCard("Асанова Айжан", "002", 3.2),
+	StudentCard("Беков Тимур", "003", 2.4),
+	StudentCard("Иманова Алия", "004", 1.5),
+	StudentCard("Садыков Руслан", "005", 0.7),
+]
+print("Средний GPA:", sum(student.gpa for student in students) / len(students))
+print("Количество отличников:", sum(student.status == "Отличник" for student in students))
+
+
+class MedCard:
+	def __init__(self, patient, age, blood_group):
+		self.__patient = patient
+		self.age = age
+		self.__blood_group = blood_group
+		self.__diagnoses = []
+
+	@property
+	def age(self):
+		return self.__age
+
+	@age.setter
+	def age(self, value):
+		if not 0 <= value <= 150:
+			raise ValueError("Возраст должен быть от 0 до 150")
+		self.__age = value
+
+	@property
+	def is_adult(self):
+		return self.__age >= 18
+
+	def add_diagnosis(self, text):
+		self.__diagnoses.append(text)
+
+	def remove_diagnosis(self, text):
+		if text in self.__diagnoses:
+			self.__diagnoses.remove(text)
+			return True
+		return False
+
+	def summary(self):
+		return (f"Пациент: {self.__patient}\nВозраст: {self.__age}\n"
+				f"Группа крови: {self.__blood_group}\nСовершеннолетний: {self.is_adult}\n"
+				f"Диагнозы: {', '.join(self.__diagnoses)}")
+
+
+med_cards = [
+	MedCard("Нурбек", 25, "A+"),
+	MedCard("Айгуль", 16, "O+"),
+	MedCard("Самат", 42, "B-"),
+]
+med_cards[0].add_diagnosis("Грипп")
+med_cards[1].add_diagnosis("Аллергия")
+med_cards[2].add_diagnosis("Гипертония")
+for med_card in med_cards:
+	print(med_card.summary())
+
+
+class EWallet:
+	def __init__(self, owner, balance, currency, max_transfer):
+		self.__owner = owner
+		self.__balance = balance
+		self.__currency = currency
+		self.__max_transfer = max_transfer
+
+	@property
+	def balance(self):
+		return self.__balance
+
+	@property
+	def can_transfer(self):
+		return self.__balance > 0 and self.__max_transfer > 0
+
+	def transfer(self, recipient, amount):
+		if (not isinstance(recipient, EWallet) or recipient is self
+				or not self.can_transfer or amount <= 0
+				or amount > self.__max_transfer or amount > self.__balance
+				or self.__currency != recipient.__currency):
+			return False
+		self.__balance -= amount
+		recipient.__balance += amount
+		return True
+
+
+wallet1 = EWallet("Айдар", 5000, "сом", 2000)
+wallet2 = EWallet("Алина", 1000, "сом", 1500)
+wallet3 = EWallet("Нурбек", 3000, "сом", 1000)
+wallet1.transfer(wallet2, 1200)
+wallet2.transfer(wallet3, 500)
+wallet3.transfer(wallet1, 700)
+print(wallet1.balance, wallet2.balance, wallet3.balance)
+
+
+class SecurePassword:
+	def __init__(self, password):
+		self.__password = ""
+		self.password = password
+
+	@property
+	def password(self):
+		return self.__password
+
+	@password.setter
+	def password(self, value):
+		valid = True
+		if len(value) < 8:
+			print("Пароль должен содержать не менее 8 символов")
+			valid = False
+		if not any(char.isdigit() for char in value):
+			print("Пароль должен содержать цифру")
+			valid = False
+		if not any(char.isupper() for char in value):
+			print("Пароль должен содержать заглавную букву")
+			valid = False
+		if any(char.isspace() for char in value):
+			print("Пароль не должен содержать пробелы")
+			valid = False
+		if valid:
+			self.__password = value
+
+	def check(self, pwd):
+		return self.__password == pwd
+
+	def strength(self):
+		conditions = [
+			len(self.__password) >= 8,
+			any(char.isdigit() for char in self.__password),
+			any(char.isupper() for char in self.__password),
+			not any(char.isspace() for char in self.__password),
+		]
+		score = sum(conditions)
+		if score <= 1:
+			return "Слабый"
+		if score < 4:
+			return "Средний"
+		return "Сильный"
+
+
+passwords = ["abc", "abcdefgh", "Abcdefgh", "Abcdefg1", "Abc defg1"]
+for password in passwords:
+	secure_password = SecurePassword(password)
+	print(password, secure_password.check(password), secure_password.strength())
+
+
+class TariffPlan:
+	def __init__(self, name, price, speed, minutes, sms):
+		self.__name = name
+		self.price = price
+		self.__speed = speed
+		self.__minutes = minutes
+		self.__sms = sms
+
+	@property
+	def price(self):
+		return self.__price
+
+	@price.setter
+	def price(self, value):
+		if value <= 0:
+			raise ValueError("Цена должна быть больше 0")
+		self.__price = value
+
+	@property
+	def name(self):
+		return self.__name
+
+	def annual_cost(self):
+		return self.__price * 12
+
+	def discount_price(self, percent):
+		return self.__price * (1 - percent / 100)
+
+	def compare(self, other):
+		return (f"{self.__name} и {other.__name}: цена {self.__price} / {other.__price}, "
+				f"скорость {self.__speed} / {other.__speed} Мбит/с, "
+				f"минуты {self.__minutes} / {other.__minutes}, SMS {self.__sms} / {other.__sms}")
+
+
+tariffs = [
+	TariffPlan("Старт", 500, 50, 300, 300),
+	TariffPlan("Комфорт", 800, 100, 600, 500),
+	TariffPlan("Плюс", 1200, 200, 1000, 1000),
+	TariffPlan("Максимум", 1600, 300, 1500, 1500),
+]
+for tariff in tariffs:
+	print(tariff.annual_cost(), tariff.discount_price(10))
+print(tariffs[0].compare(tariffs[1]))
+print("Оптимальный тариф:", min(tariffs, key=lambda tariff: tariff.price).name)
+
+
+class Safe:
+	def __init__(self, pin, content, master_pin):
+		self.__pin = str(pin)
+		self.__content = list(content)
+		self.__master_pin = str(master_pin)
+		self.__attempts = 0
+		self.__locked = False
+
+	def open(self, pin):
+		if self.__locked:
+			return "Сейф заблокирован"
+		if str(pin) != self.__pin:
+			self.__attempts += 1
+			if self.__attempts >= 3:
+				self.__locked = True
+			return "Неверный PIN"
+		self.__attempts = 0
+		return self.__content.copy()
+
+	def put(self, item, pin):
+		if self.__locked:
+			return False
+		if str(pin) != self.__pin:
+			self.__attempts += 1
+			if self.__attempts >= 3:
+				self.__locked = True
+			return False
+		self.__attempts = 0
+		self.__content.append(item)
+		return True
+
+	def reset(self, master_pin):
+		if str(master_pin) != self.__master_pin:
+			return False
+		self.__attempts = 0
+		self.__locked = False
+		return True
+
+
+safe = Safe("1234", ["Документы"], "9999")
+print(safe.open("1234"))
+safe.put("Часы", "1234")
+print(safe.open("1234"))
+safe.open("0000")
+safe.open("0000")
+safe.open("0000")
+print(safe.open("1234"))
+safe.reset("9999")
+print(safe.open("1234"))
+
+
+class HealthMetrics:
+	def __init__(self, name, height, weight, age):
+		self.__name = name
+		self.height = height
+		self.weight = weight
+		self.__age = age
+
+	@property
+	def height(self):
+		return self.__height
+
+	@height.setter
+	def height(self, value):
+		if not 50 <= value <= 250:
+			raise ValueError("Рост должен быть от 50 до 250 см")
+		self.__height = value
+
+	@property
+	def weight(self):
+		return self.__weight
+
+	@weight.setter
+	def weight(self, value):
+		if not 2 <= value <= 500:
+			raise ValueError("Вес должен быть от 2 до 500 кг")
+		self.__weight = value
+
+	def bmi(self):
+		height_m = self.__height / 100
+		return self.__weight / (height_m * height_m)
+
+	def bmi_status(self):
+		bmi_value = self.bmi()
+		if bmi_value < 18.5:
+			return "Недовес"
+		if bmi_value < 25:
+			return "Норма"
+		if bmi_value < 30:
+			return "Избыточный вес"
+		if bmi_value < 40:
+			return "Ожирение"
+		return "Морбидное ожирение"
+
+	def daily_calories(self):
+		return 66.5 + 13.75 * self.__weight + 5.003 * self.__height - 6.755 * self.__age
+
+
+patients = [
+	HealthMetrics("Айбек", 175, 70, 20),
+	HealthMetrics("Алина", 165, 55, 25),
+	HealthMetrics("Самат", 180, 95, 40),
+	HealthMetrics("Айгуль", 160, 85, 35),
+]
+for patient in patients:
+	print(patient.bmi(), patient.bmi_status(), patient.daily_calories())

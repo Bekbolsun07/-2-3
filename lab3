@@ -1,0 +1,531 @@
+from datetime import date
+
+
+# 1. Сотрудники компании
+class Employee:
+	def __init__(self, name, position, base_salary, years):
+		self.name = name
+		self.position = position
+		self.base_salary = base_salary
+		self.years = years
+
+	def salary(self):
+		return self.base_salary
+
+	def introduce(self):
+		return f"{self.name} — {self.position}, стаж {self.years} лет"
+
+
+class Manager(Employee):
+	def __init__(self, name, department, subordinates, bonus_percent,
+				 base_salary, years):
+		super().__init__(name, "Менеджер", base_salary, years)
+		self.department = department
+		self.subordinates = subordinates
+		self.bonus_percent = bonus_percent
+
+	def salary(self):
+		return self.base_salary * (1 + self.bonus_percent / 100)
+
+	def introduce(self):
+		return (f"{super().introduce()}, отдел: {self.department}, "
+				f"подчинённых: {self.subordinates}")
+
+
+class Developer(Employee):
+	LEVEL_BONUS = {"junior": 0, "middle": 30, "senior": 60}
+
+	def __init__(self, name, language, level, base_salary, years):
+		super().__init__(name, "Разработчик", base_salary, years)
+		self.language = language
+		self.level = level
+
+	def salary(self):
+		return self.base_salary * (1 + self.LEVEL_BONUS[self.level] / 100)
+
+	def introduce(self):
+		return (f"{super().introduce()}, язык: {self.language}, "
+				f"уровень: {self.level}")
+
+
+team = [
+	Manager("Айбек", "Продажи", 5, 20, 80000, 8),
+	Manager("Алина", "Разработка", 4, 15, 90000, 6),
+	Developer("Нурбек", "Python", "senior", 100000, 7),
+	Developer("Айжан", "Java", "middle", 80000, 4),
+	Developer("Тимур", "C++", "junior", 60000, 1),
+	Employee("Самат", "Бухгалтер", 70000, 5),
+]
+for employee in team:
+	print(employee.introduce())
+	print(f"Зарплата: {employee.salary():.0f} сом")
+print(f"Зарплатный фонд: {sum(employee.salary() for employee in team):.0f} сом")
+print()
+
+
+# 2. Туристическое агентство
+class TourPackage:
+	def __init__(self, name, country, days, base_price):
+		self.name = name
+		self.country = country
+		self.days = days
+		self.base_price = base_price
+
+	def season_discount(self, month):
+		return 0
+
+	def total_price(self, persons, month):
+		return self.base_price * persons * (1 - self.season_discount(month) / 100)
+
+	def describe(self):
+		return f"{self.name}, {self.country}, {self.days} дней"
+
+
+class BeachTour(TourPackage):
+	def __init__(self, name, country, days, base_price, resort, hotel,
+				 flight, food):
+		super().__init__(name, country, days, base_price)
+		self.resort = resort
+		self.hotel = hotel
+		self.flight = flight
+		self.food = food
+
+	def season_discount(self, month):
+		if month in (11, 12, 1, 2, 3):
+			return 20
+		if month in (4, 5, 9, 10):
+			return 10
+		return 0
+
+	def describe(self):
+		flight = "перелёт включён" if self.flight else "без перелёта"
+		return (f"[Пляжный тур] {super().describe()} | курорт: {self.resort} | "
+				f"отель: {self.hotel}* | {flight} | питание: {self.food}")
+
+
+class AdventureTour(TourPackage):
+	def __init__(self, name, country, days, base_price, route, fitness,
+				 equipment, guide):
+		super().__init__(name, country, days, base_price)
+		self.route = route
+		self.fitness = fitness
+		self.equipment = equipment
+		self.guide = guide
+
+	def season_discount(self, month):
+		if month in (12, 1, 2):
+			return 15
+		if month in (3, 4, 9, 10, 11):
+			return 10
+		return 0
+
+	def describe(self):
+		guide = "гид включён" if self.guide else "без гида"
+		return (f"[Приключенческий тур] {super().describe()} | маршрут: {self.route} | "
+				f"подготовка: {self.fitness} | снаряжение: "
+				f"{', '.join(self.equipment)} | {guide}")
+
+
+tours = [
+	BeachTour("Отдых у моря", "Турция", 7, 50000, "Анталья", 4, True, "AI"),
+	BeachTour("Лазурный берег", "Египет", 10, 65000, "Хургада", 5, True, "HB"),
+	BeachTour("Островной отдых", "Таиланд", 12, 80000, "Пхукет", 4, False, "BB"),
+	AdventureTour("Горный поход", "Кыргызстан", 5, 30000, "Ала-Арча", "средний",
+				  ["палатка", "рюкзак"], True),
+	AdventureTour("Путь к озеру", "Кыргызстан", 4, 25000, "Сон-Куль", "лёгкий",
+				  ["палатка", "спальник"], True),
+	AdventureTour("Восхождение", "Казахстан", 8, 70000, "Хан-Тенгри", "сложный",
+				  ["верёвка", "каска"], True),
+]
+for tour in tours:
+	print(tour.describe())
+	print(f"Цена на 2 человек в июле: {tour.total_price(2, 7):.0f} сом")
+print()
+
+
+# 3. Бытовая техника
+class Appliance:
+	def __init__(self, brand, power, price, energy_class):
+		self.brand = brand
+		self.power = power
+		self.price = price
+		self.energy_class = energy_class
+
+	def spec(self):
+		return (f"{self.brand}: {self.power} Вт, {self.price} сом, "
+				f"класс {self.energy_class}")
+
+	def energy_cost(self, hours, rate):
+		return self.power / 1000 * hours * rate
+
+	def compare(self, other):
+		if self.price < other.price:
+			return f"{self.brand} дешевле, чем {other.brand}"
+		if self.price > other.price:
+			return f"{self.brand} дороже, чем {other.brand}"
+		return "Цена одинаковая"
+
+
+class WashingMachine(Appliance):
+	def __init__(self, brand, power, price, energy_class, drum_kg, modes,
+				 temperature):
+		super().__init__(brand, power, price, energy_class)
+		self.drum_kg = drum_kg
+		self.modes = modes
+		self.temperature = temperature
+
+	def spec(self):
+		return (f"[Стиральная машина] {super().spec()} | барабан: {self.drum_kg} кг | "
+				f"режимы: {', '.join(self.modes)} | температура: {self.temperature}°C")
+
+
+class Refrigerator(Appliance):
+	def __init__(self, brand, power, price, energy_class, volume, chambers,
+				 freezer_temperature):
+		super().__init__(brand, power, price, energy_class)
+		self.volume = volume
+		self.chambers = chambers
+		self.freezer_temperature = freezer_temperature
+
+	def spec(self):
+		return (f"[Холодильник] {super().spec()} | объём: {self.volume} л | "
+				f"камер: {self.chambers} | морозилка: {self.freezer_temperature}°C")
+
+
+appliances = [
+	WashingMachine("Samsung", 2000, 45000, "A++", 8, ["хлопок", "быстрая"], 60),
+	WashingMachine("LG", 1800, 40000, "A+", 7, ["хлопок", "деликатная"], 40),
+	WashingMachine("Bosch", 2100, 52000, "A++", 9, ["эко", "быстрая"], 90),
+	Refrigerator("Beko", 300, 35000, "A+", 300, 2, -18),
+	Refrigerator("LG", 250, 50000, "A++", 400, 2, -20),
+	Refrigerator("Samsung", 320, 60000, "A", 500, 3, -18),
+]
+for appliance in appliances:
+	print(appliance.spec())
+	print(f"Электроэнергия за 10 часов: {appliance.energy_cost(10, 2):.1f} сом")
+print(appliances[0].compare(appliances[1]))
+print()
+
+
+# 4. Спортсмены
+class Athlete:
+	def __init__(self, name, age, country, awards):
+		self.name = name
+		self.age = age
+		self.country = country
+		self.awards = awards
+
+	def achievement(self):
+		return f"{self.name}: наград — {self.medals_count()}"
+
+	def add_medal(self, medal, year):
+		self.awards.append((medal, year))
+
+	def medals_count(self):
+		return len(self.awards)
+
+	def avg_speed(self):
+		return 0
+
+
+class Swimmer(Athlete):
+	def __init__(self, name, age, country, awards, specialization, record_100m,
+				 style):
+		super().__init__(name, age, country, awards)
+		self.specialization = specialization
+		self.record_100m = record_100m
+		self.style = style
+
+	def avg_speed(self):
+		return 100 / self.record_100m
+
+
+class Sprinter(Athlete):
+	def __init__(self, name, age, country, awards, distance, record, starts):
+		super().__init__(name, age, country, awards)
+		self.distance = distance
+		self.record = record
+		self.starts = starts
+
+	def avg_speed(self):
+		return self.distance / self.record
+
+
+athletes = [
+	Swimmer("Айсулуу", 22, "Кыргызстан", [("золото", 2024)], "100 м", 58.2, "вольный"),
+	Swimmer("Мария", 25, "Россия", [("серебро", 2023)], "100 м", 56.8, "баттерфляй"),
+	Swimmer("Данияр", 20, "Кыргызстан", [], "100 м", 61.5, "брасс"),
+	Sprinter("Усэйн", 38, "Ямайка", [("золото", 2016), ("золото", 2012)], 100, 9.58, 20),
+	Sprinter("Фред", 29, "США", [("серебро", 2024)], 200, 19.46, 18),
+	Sprinter("Элина", 24, "Кыргызстан", [], 100, 11.8, 12),
+]
+athletes[2].add_medal("бронза", 2025)
+for athlete in athletes:
+	print(athlete.achievement())
+	print(f"Средняя скорость: {athlete.avg_speed():.2f} м/с")
+best_athlete = max(athletes, key=lambda athlete: athlete.medals_count())
+print(f"Больше всего наград у: {best_athlete.name}")
+print()
+
+
+# 5. Недвижимость
+class Property:
+	def __init__(self, address, area, price, year_built):
+		self.address = address
+		self.area = area
+		self.price = price
+		self.year_built = year_built
+
+	def price_per_sqm(self):
+		return self.price / self.area
+
+	def is_affordable(self, budget):
+		return self.price <= budget
+
+	def age(self):
+		return date.today().year - self.year_built
+
+	def describe(self):
+		return (f"{self.address}: {self.area} м², {self.price} сом, "
+				f"построен в {self.year_built} г.")
+
+
+class Apartment(Property):
+	def __init__(self, address, area, price, year_built, floor, rooms,
+				 balcony, apartment_type):
+		super().__init__(address, area, price, year_built)
+		self.floor = floor
+		self.rooms = rooms
+		self.balcony = balcony
+		self.apartment_type = apartment_type
+
+	def describe(self):
+		balcony = "есть балкон" if self.balcony else "без балкона"
+		return (f"[Квартира] {super().describe()} | этаж: {self.floor} | "
+				f"комнат: {self.rooms} | {balcony} | {self.apartment_type}")
+
+
+class House(Property):
+	def __init__(self, address, area, price, year_built, floors, land_area,
+				 material, garage):
+		super().__init__(address, area, price, year_built)
+		self.floors = floors
+		self.land_area = land_area
+		self.material = material
+		self.garage = garage
+
+	def describe(self):
+		garage = "есть гараж" if self.garage else "без гаража"
+		return (f"[Дом] {super().describe()} | этажей: {self.floors} | "
+				f"участок: {self.land_area} соток | {self.material} | {garage}")
+
+
+properties = [
+	Apartment("Бишкек, ул. Манаса, 10", 70, 7000000, 2020, 5, 3, True, "новостройка"),
+	Apartment("Бишкек, ул. Киевская, 20", 55, 4950000, 1985, 3, 2, False, "вторичка"),
+	Apartment("Ош, ул. Ленина, 5", 80, 6400000, 2022, 7, 3, True, "новостройка"),
+	House("Бишкек, с. Кок-Жар", 150, 12000000, 2015, 2, 6, "кирпич", True),
+	House("Чуйская область, с. Сокулук", 120, 6000000, 2008, 1, 8, "газобетон", False),
+	House("Ошская область, с. Нариман", 100, 4500000, 1998, 1, 10, "дерево", True),
+]
+for property_object in properties:
+	print(property_object.describe())
+	print(f"Цена за м²: {property_object.price_per_sqm():.0f} сом")
+	print(f"Доступно при бюджете 6 000 000 сом: "
+		  f"{property_object.is_affordable(6000000)}")
+best_property = min(properties, key=lambda item: item.price_per_sqm())
+print(f"Лучшее соотношение цена/площадь: {best_property.address}")
+print()
+
+
+# 6. Продукты питания
+class Food:
+	def __init__(self, name, calories, proteins, fats, carbohydrates, price_kg):
+		self.name = name
+		self.calories = calories
+		self.proteins = proteins
+		self.fats = fats
+		self.carbohydrates = carbohydrates
+		self.price_kg = price_kg
+
+	def label(self):
+		return (f"{self.name}: {self.calories} ккал, Б {self.proteins} г, "
+				f"Ж {self.fats} г, У {self.carbohydrates} г на 100 г; "
+				f"{self.price_kg} сом/кг")
+
+	def calories_per_serving(self, serving_g):
+		return self.calories * serving_g / 100
+
+
+class Dairy(Food):
+	def __init__(self, name, calories, proteins, fats, carbohydrates, price_kg,
+				 fat_percent, shelf_life, dairy_type):
+		super().__init__(name, calories, proteins, fats, carbohydrates, price_kg)
+		self.fat_percent = fat_percent
+		self.shelf_life = shelf_life
+		self.dairy_type = dairy_type
+
+	def is_fresh(self, days):
+		return days <= self.shelf_life
+
+	def label(self):
+		return (f"{super().label()} | {self.dairy_type}, "
+				f"жирность {self.fat_percent}% | срок хранения {self.shelf_life} дней")
+
+
+class Bakery(Food):
+	def __init__(self, name, calories, proteins, fats, carbohydrates, price_kg,
+				 ingredients, weight, bakery_type):
+		super().__init__(name, calories, proteins, fats, carbohydrates, price_kg)
+		self.ingredients = ingredients
+		self.weight = weight
+		self.bakery_type = bakery_type
+
+	def label(self):
+		return (f"{super().label()} | {self.bakery_type}, {self.weight} г | "
+				f"состав: {', '.join(self.ingredients)}")
+
+
+foods = [
+	Dairy("Молоко", 60, 3, 3.2, 4.7, 90, 3.2, 7, "молоко"),
+	Dairy("Кефир", 53, 3, 2.5, 4, 85, 2.5, 5, "кефир"),
+	Dairy("Йогурт", 75, 4, 3, 8, 140, 3, 10, "йогурт"),
+	Bakery("Хлеб", 250, 8, 3, 48, 70, ["мука", "вода", "соль"], 500, "хлеб"),
+	Bakery("Булочка", 310, 7, 9, 50, 180, ["мука", "молоко", "сахар"], 100, "булочка"),
+	Bakery("Торт", 380, 5, 20, 45, 600, ["мука", "яйца", "крем"], 1000, "торт"),
+]
+for food in foods:
+	print(food.label())
+	print(f"Калорийность порции 150 г: {food.calories_per_serving(150):.1f} ккал")
+	if isinstance(food, Dairy):
+		print(f"Свежий через 4 дня: {food.is_fresh(4)}")
+print()
+
+
+# 7. Музыкальные инструменты
+class Instrument:
+	def __init__(self, name, country, year, instrument_type):
+		self.name = name
+		self.country = country
+		self.year = year
+		self.instrument_type = instrument_type
+
+	def play(self):
+		return f"{self.name} играет"
+
+	def tune(self):
+		return f"{self.name} настроен"
+
+	def describe(self):
+		return (f"{self.name}: {self.instrument_type}, {self.country}, "
+				f"создан в {self.year} г.")
+
+
+class StringInstrument(Instrument):
+	def __init__(self, name, country, year, instrument_type, strings, material,
+				 playing_type):
+		super().__init__(name, country, year, instrument_type)
+		self.strings = strings
+		self.material = material
+		self.playing_type = playing_type
+
+	def describe(self):
+		return (f"{super().describe()} | струн: {self.strings} | "
+				f"дека: {self.material} | {self.playing_type}")
+
+
+class WindInstrument(Instrument):
+	def __init__(self, name, country, year, instrument_type, note_range,
+				 material, wind_type):
+		super().__init__(name, country, year, instrument_type)
+		self.note_range = note_range
+		self.material = material
+		self.wind_type = wind_type
+
+	def describe(self):
+		return (f"{super().describe()} | диапазон: {self.note_range} | "
+				f"материал: {self.material} | {self.wind_type}")
+
+
+orchestra = [
+	StringInstrument("Скрипка", "Италия", 1550, "струнный", 4, "клён", "смычковый"),
+	StringInstrument("Гитара", "Испания", 1850, "струнный", 6, "ель", "щипковый"),
+	StringInstrument("Арфа", "Египет", -2500, "струнный", 47, "дерево", "щипковый"),
+	WindInstrument("Труба", "Германия", 1500, "духовой", "фа–ре", "металл", "медный"),
+	WindInstrument("Флейта", "Германия", 900, "духовой", "до–до", "дерево", "деревянный"),
+	WindInstrument("Кларнет", "Германия", 1700, "духовой", "ми–соль", "дерево", "деревянный"),
+]
+for instrument in orchestra:
+	print(instrument.describe())
+	print(instrument.play())
+	print(instrument.tune())
+print()
+
+
+# 8. Горные вершины
+class Mountain:
+	def __init__(self, name, height, country, first_ascent):
+		self.name = name
+		self.height = height
+		self.country = country
+		self.first_ascent = first_ascent
+
+	def describe(self):
+		return (f"{self.name}: {self.height} м, {self.country}, "
+				f"первое восхождение — {self.first_ascent} г.")
+
+	def is_highaltitude(self):
+		return self.height > 5000
+
+	def climbing_difficulty(self):
+		return "не указана"
+
+
+class Peak(Mountain):
+	DIFFICULTIES = {
+		1: "очень лёгкая", 2: "лёгкая", 3: "средняя",
+		4: "сложная", 5: "очень сложная",
+	}
+
+	def __init__(self, name, height, country, first_ascent, difficulty,
+				 route_type, route_length):
+		super().__init__(name, height, country, first_ascent)
+		self.difficulty = difficulty
+		self.route_type = route_type
+		self.route_length = route_length
+
+	def describe(self):
+		return (f"[Вершина] {super().describe()} | сложность: {self.difficulty}/5 | "
+				f"маршрут: {self.route_type}, {self.route_length} км")
+
+	def climbing_difficulty(self):
+		return self.DIFFICULTIES[self.difficulty]
+
+
+class Volcano(Mountain):
+	def __init__(self, name, height, country, first_ascent, status,
+				 last_eruption, crater_diameter):
+		super().__init__(name, height, country, first_ascent)
+		self.status = status
+		self.last_eruption = last_eruption
+		self.crater_diameter = crater_diameter
+
+	def describe(self):
+		return (f"[Вулкан] {super().describe()} | статус: {self.status} | "
+				f"последнее извержение: {self.last_eruption} г. | "
+				f"диаметр кратера: {self.crater_diameter} м")
+
+
+mountains = [
+	Peak("Пик Ленина", 7134, "Кыргызстан", 1928, 3, "смешанный", 18),
+	Peak("Пик Победы", 7439, "Кыргызстан", 1956, 5, "ледовый", 25),
+	Peak("Эльбрус", 5642, "Россия", 1874, 2, "скальный", 12),
+	Volcano("Фудзияма", 3776, "Япония", 663, "спящий", 1707, 800),
+	Volcano("Этна", 3357, "Италия", 500, "активный", 2025, 450),
+	Volcano("Килиманджаро", 5895, "Танзания", 1889, "потухший", 360000, 2500),
+]
+for mountain in mountains:
+	print(mountain.describe())
+	print(f"Высокогорная: {mountain.is_highaltitude()}")
+	print(f"Сложность восхождения: {mountain.climbing_difficulty()}")
+	print()
